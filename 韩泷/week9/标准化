@@ -1,0 +1,31 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+#归一化的两种方式
+# 0-1归一化
+def Normalize1(data):
+    data_max = np.max(data)
+    data_min = np.min(data)
+    data_norm = (data - data_min) / (data_max - data_min)
+    return data_norm
+
+# -1-1归一化
+def Normalization2(data):
+    data_max = np.max(data)
+    data_min = np.min(data)
+    data_mean = np.mean(data)
+    data_norm = (data - data_mean) / (data_max - data_min)
+    return data_norm
+
+#z-score归一化
+def Zscore(data):
+    data_mean = np.mean(data)
+    data_std = np.std(data)
+    data_norm = (data - data_mean) / data_std
+    return data_norm
+
+l=[-10, 5, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15, 30]
+print("原始数据：",l)
+print("0-1归一化后数据：",Normalize1(l))
+print("0-1归一化后数据：",Normalization2(l))
+print("z-score归一化后数据：",Zscore(l))
