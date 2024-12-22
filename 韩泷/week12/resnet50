@@ -1,0 +1,60 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchvision import models, transforms
+from PIL import Image
+import numpy as np
+
+class ResNet50(nn.Module):
+    def __init__(self, num_classes=1000):
+        super(ResNet50, self).__init__()
+        self.model = models.resnet50(weights='IMAGENET1K_V1')
+        self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)
+
+    def forward(self, x):
+        return self.model(x)
+
+def preprocess_image(image_path):
+    # 定义预处理流程
+    preprocess = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    
+    # 加载并预处理图像
+    img = Image.open(image_path).convert('RGB')
+    img = preprocess(img)
+    img = img.unsqueeze(0)  # 增加批处理维度
+    return img
+
+if __name__ == '__main__':
+    # 创建ResNet50模型
+    model = ResNet50()
+    model.eval()  # 设置为评估模式
+
+    # 加载图像
+    img_path = 'elephant.jpg'  # 替换为你自己的图像路径
+    input_image = preprocess_image(img_path)
+
+    # 预测
+    with torch.no_grad():  # 不需要计算梯度
+        preds = model(input_image)
+    
+    # 处理预测结果
+    probabilities = F.softmax(preds, dim=1)
+    top5_probs, top5_indices = torch.topk(probabilities, 5)
+    
+    # 显示结果
+    print('Predicted probabilities:', top5_probs.numpy())
+    print('Predicted indices:', top5_indices.numpy())
+    
+    # 解码预测结果（需要你自己提供的类名称或使用 torchvision 提供的）
+    # 这里假设使用 ImageNet 的类索引来进行解码
+    labels_path = 'imagenet_classes.txt'  # 需要你自己准备的类索引文件
+    with open(labels_path) as f:
+        labels = f.readlines()
+
+    for i in range(top5_indices.shape[1]):
+        print(f'Top {i+1}: {labels[top5_indices[0][i]]} - {top5_probs[0][i].item()}')
